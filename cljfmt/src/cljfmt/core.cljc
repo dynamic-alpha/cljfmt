@@ -698,11 +698,20 @@
                     reduce-column-group
                     reduce-columns)
         maximizer (fn [zloc c max-pos]
-                    (if (and (= c (dec col))
-                             (or (:align-single-column-lines? opts)
-                                 (not (single-column-line? zloc))))
-                      (max max-pos (node-end-position zloc))
-                      max-pos))]
+                    (let [ignore-map-value?
+                          ;; When aligning map columns, `reduce-columns` resets the
+                          ;; column counter at line breaks. That means a wrapped map
+                          ;; value can appear in "column 0" and incorrectly widen
+                          ;; the key column.
+                          (and (z/map? (z/up zloc))
+                               (= col 1)
+                               (odd? (index-of zloc)))]
+                      (if (and (= c (dec col))
+                               (not ignore-map-value?)
+                               (or (:align-single-column-lines? opts)
+                                   (not (single-column-line? zloc))))
+                        (max max-pos (node-end-position zloc))
+                        max-pos)))]
     (inc (reduce-fn zloc maximizer 0))))
 
 (defn- align-one-column
