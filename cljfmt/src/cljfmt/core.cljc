@@ -698,11 +698,21 @@
                     reduce-column-group
                     reduce-columns)
         maximizer (fn [zloc c max-pos]
-                    (if (and (= c (dec col))
-                             (or (:align-single-column-lines? opts)
-                                 (not (single-column-line? zloc))))
-                      (max max-pos (node-end-position zloc))
-                      max-pos))]
+                    (let [ignore-wrapped-value?
+                          ;; `reduce-columns` resets the column counter at line breaks.
+                          ;; That means a wrapped value in a two-column structure like a
+                          ;; map (`{:k\n v}`) or binding vector (`[k\n v]`) can appear in
+                          ;; "column 0" and incorrectly widen the first column.
+                          (and (= col 1)
+                               (odd? (index-of zloc))
+                               (or (z/map? (z/up zloc))
+                                   (z/vector? (z/up zloc))))]
+                      (if (and (= c (dec col))
+                               (not ignore-wrapped-value?)
+                               (or (:align-single-column-lines? opts)
+                                   (not (single-column-line? zloc))))
+                        (max max-pos (node-end-position zloc))
+                        max-pos)))]
     (inc (reduce-fn zloc maximizer 0))))
 
 (defn- align-one-column

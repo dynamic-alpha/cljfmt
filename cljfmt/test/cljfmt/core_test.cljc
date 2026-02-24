@@ -2469,6 +2469,23 @@
           "           (+ x y))"
           " :longer 3}"]
          {:align-map-columns? true})))
+    (testing "wrapped values do not affect key/value alignment"
+      (is (reformats-to?
+           ["{:title \"Title\""
+            " :body"
+            "  (this-is-something-that-is-too-long-and-should"
+            "    \"not\""
+            "    \"widen\")}"
+            ]
+           ["{:title \"Title\""
+            " :body"
+            " (this-is-something-that-is-too-long-and-should"
+            "  \"not\""
+            "  \"widen\")}"
+            ]
+           {:align-map-columns? true})))
+
+
   (testing "comments"
     (is (reformats-to?
          ["{:x 1   ; a comment"
@@ -2614,34 +2631,34 @@
          {:align-form-columns? true}))))
 
 (deftest test-align-single-column-lines-option
-  (testing "map with wrapped value - :align-single-column-lines? true causes excessive padding"
+  (testing "map with wrapped value - wrapped values do not widen alignment"
     (is (reformats-to?
          ["{:key1 1"
           " :key2"
           " (fn [a b c d e]"
           "   (+ a b c d e))"
           " :key 3}"]
-         ["{:key1            1"
+         ["{:key1 1"
           " :key2"
           " (fn [a b c d e]"
           "   (+ a b c d e))"
-          " :key             3}"]
+          " :key  3}"]
          {:align-map-columns?         true
           :align-single-column-lines? true})))
-  (testing "let with wrapped value - :align-single-column-lines? true causes excessive padding"
+  (testing "let with wrapped value - wrapped values do not widen alignment"
     (is (reformats-to?
-         ["(let [a 2"
+         ["(let [longer-var 2"
           "      b"
           "      (fn [e]"
           "        (+ e 1 1 1 1 1 1 1 1))"
           "      c 3]"
-          "  (+ a c))"]
-         ["(let [a                        2"
+          "  (+ longer-var c))"]
+         ["(let [longer-var 2"
           "      b"
           "      (fn [e]"
           "        (+ e 1 1 1 1 1 1 1 1))"
-          "      c                        3]"
-          "  (+ a c))"]
+          "      c          3]"
+          "  (+ longer-var c))"]
          {:align-form-columns?        true
           :align-single-column-lines? true})))
   (testing "map with wrapped value - :align-single-column-lines? false (default) compact alignment"
@@ -2845,10 +2862,10 @@
           ""
           " :c 4 :d 5"
           " :longer 6}"]
-         ["{:a         1 :b 2"
+         ["{:a    1 :b 2"
           " :key1"
           " (fn [x] x)"
-          " :key2      3"
+          " :key2 3"
           ""
           " :c      4 :d 5" " :longer 6}"]
          {:align-map-columns? true
@@ -2878,13 +2895,13 @@
           ""
           " :c 4 :d 5"
           " :longer 6}"]
-         ["{:a         1 :b 2"
-          " :key1      3"
+         ["{:a      1 :b 2"
+          " :key1   3"
           " :key2"
           " (fn [x] x)"
           ""
-          " :c         4 :d 5"
-          " :longer    6}"]
+          " :c      4 :d 5"
+          " :longer 6}"]
          {:align-map-columns? true
           :blank-lines-separate-alignment? false
           :align-single-column-lines? true})))
@@ -2899,8 +2916,8 @@
           "      c 4 d 5"
           "      another 6]"
           "  (+ a b c d))"]
-         ["(let [a                1 b 2"
-          "      long-var         3"
+         ["(let [a        1 b 2"
+          "      long-var 3"
           "      wrapped"
           "      (fn [x] (+ x 1))"
           ""
@@ -2943,13 +2960,13 @@
           "      c 4 d 5"
           "      another 6]"
           "  (+ a b c d))"]
-         ["(let [a                1 b 2"
-          "      long-var         3"
+         ["(let [a        1 b 2"
+          "      long-var 3"
           "      wrapped"
           "      (fn [x] (+ x 1))"
           ""
-          "      c                4 d 5"
-          "      another          6]"
+          "      c        4 d 5"
+          "      another  6]"
           "  (+ a b c d))"]
          {:align-form-columns? true
           :blank-lines-separate-alignment? false
